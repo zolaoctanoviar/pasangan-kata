@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Pasangan Kata | One Question at a Time</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Inter', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* main quiz card */
+        .quiz-container {
+            max-width: 750px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(0px);
+        }
+
+        /* header */
+        .quiz-header {
+            background: #1e2a3e;
+            padding: 1.4rem 2rem;
+            color: white;
+        }
+
+        .quiz-header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quiz-header h1 small {
+            font-size: 0.8rem;
+            font-weight: normal;
+            background: #2d3e54;
+            padding: 4px 10px;
+            border-radius: 40px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            background: #0f1720;
+            padding: 8px 16px;
+            border-radius: 60px;
+            width: fit-content;
+            gap: 20px;
+        }
+
+        .stats span {
+            font-weight: bold;
+            color: #facc15;
+        }
+
+        /* body */
+        .quiz-body {
+            padding: 2rem 2rem 1.8rem;
+        }
+
+        .question-text {
+            font-size: 1.65rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 1.8rem;
+            color: #0f172a;
+            border-left: 5px solid #3b82f6;
+            padding-left: 1rem;
+        }
+
+        .analogy-highlight {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-family: monospace;
+            font-weight: 700;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 60px;
+            padding: 0.9rem 1.2rem;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            transform: scale(0.99);
+        }
+
+        .option-prefix {
+            font-weight: 800;
+            background: #f1f5f9;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 60px;
+            color: #334155;
+        }
+
+        .option-btn.selected {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 6px rgba(59,130,246,0.2);
+        }
+
+        .option-btn.correct-feedback {
+            background: #dcfce7;
+            border-color: #22c55e;
+        }
+
+        .option-btn.wrong-feedback {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .feedback-message {
+            margin-top: 1rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: #f1f5f9;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            margin-top: 28px;
+        }
+
+        button {
+            background: #334155;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.15s;
+            flex: 1;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .next-btn {
+            background: #2563eb;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+        }
+
+        .next-btn:disabled, .prev-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-btn {
+            background: #475569;
+        }
+
+        .result-area {
+            margin-top: 1.5rem;
+            padding-top: 0.8rem;
+            border-top: 2px dashed #cbd5e1;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 550px) {
+            .quiz-body {
+                padding: 1.5rem;
+            }
+            .question-text {
+                font-size: 1.3rem;
+            }
+            .option-btn {
+                padding: 0.7rem 1rem;
+            }
+        }
+    </style>
+    <!-- SQL.js (sqlite compiled to WebAssembly) -->
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+</head>
+<body>
+<div class="quiz-container" id="quizRoot">
+    <div class="quiz-header">
+        <h1>📖 Pasangan Kata <small>hubungan pasangan kata dalam kalimat</small></h1>
+        <div class="stats">
+            <div>📋 Soal: <span id="currentIdxDisplay">0</span> / <span id="totalCountSpan">0</span></div>
+            <div>✅ Skor: <span id="scoreDisplay">0</span></div>
+        </div>
+    </div>
+    <div class="quiz-body" id="dynamicContent">
+        <!-- dynamic rendering -->
+        <div style="text-align:center; padding: 2rem;">Memuat database soal...</div>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. Data soal mentah (25 soal sesuai file pasangan-verbal.md)
+    //    Setiap soal: kalimat "X berhubungan dengan Y, sebagaimana A berhubungan dengan B"
+    //    Pilihan ganda (A–E) berupa teks alternatif.
+    //    Kita buat array objek { stem, options, correctIndex, explanationNote }
+    // --------------------------------------------------------------
+    const rawQuestions = [
+        { stem: "_____ berhubungan dengan TULANG, sebagaimana GEDUNG berhubungan dengan _____", options: ["Belulang – ber-AC", "Tingkat – bertingkat", "Tua – kota", "Tubuh – rangka", "Kurus – kokoh"], correct: 1 },
+        { stem: "_____ berhubungan dengan SISWA, sebagaimana DOSEN berhubungan dengan _____", options: ["Guru – perguruan tinggi", "Guru – kuliah", "Mahasiswa – guru", "Belajar – pengajar", "SMA - mahasiswa"], correct: 1 },
+        { stem: "_____ berhubungan dengan KAPAL, sebagaimana PESAWAT UDARA berhubungan dengan _____", options: ["Angkatan laut – angkatan darat", "Pelaut – penerbang", "Prajurit – pilot", "Ikan – polusi", "Sungai – oksigen"], correct: 1 },
+        { stem: "_____ berhubungan dengan CANGKIR, sebagaimana MAKANAN berhubungan dengan _____", options: ["Minuman – kue", "Minuman – piring", "Kaca – piring", "Pecah – basi", "Air – manis"], correct: 1 },
+        { stem: "_____ berhubungan dengan ES, sebagaimana PELINDUNG berhubungan dengan _____", options: ["Salju – jaket", "Beku – panas", "Pendingin – payung", "Minuman – hujan", "Air – pengaman"], correct: 2 },
+        { stem: "_____ berhubungan dengan STERIL, sebagaimana SUAMI berhubungan dengan _____", options: ["Bersih – meninggal", "Kuman – janda", "Rumah sakit – rumah tangga", "Kuman – meninggal", "Bakteri – istri"], correct: 4 },
+        { stem: "_____ berkaitan dengan KETUA, sebagaimana PROVINSI berkaitan dengan _____", options: ["Bendahara – daerah istimewa", "Organisasi – gubernur", "Sekretaris – sekretaris daerah", "Anggota – rakyat", "Jabatan – kabupaten"], correct: 1 },
+        { stem: "_____ berhubungan dengan EMAS, sebagaimana AYAH berhubungan dengan _____", options: ["Perunggu – anak", "Perak – kakek", "Berlian – paman", "Cincin – warisan", "Logam – keluarga"], correct: 1 },
+        { stem: "_____ berhubungan dengan AKTOR, sebagaimana KOMANDAN berhubungan dengan _____", options: ["Film – pangkat", "Sutradara – prajurit", "Artis – pasukan", "Sutradara – batalion", "Film – senjata"], correct: 2 },
+        { stem: "_____ berhubungan dengan RUMAH, sebagaimana KAPAS berhubungan dengan _____", options: ["Ruangan – pohon", "Kokoh – empuk", "Atap – tenun", "Batu bata – pakaian", "Cat – putih"], correct: 3 },
+        { stem: "_____ berhubungan dengan PENYAKIT, sebagaimana BENTURAN berhubungan dengan _____", options: ["Virus – tulang", "Kuman – memar", "Kesehatan – luka", "Obat – otot", "Menderita – kecelakaan"], correct: 1 },
+        { stem: "_____ berhubungan dengan SEPAKBOLA, sebagaimana BERBISIK berhubungan dengan _____", options: ["Kompetisi – suara", "Kiper – komunikasi", "Liga – berjalan", "Futsal – berbicara", "Lapangan – rasa takut"], correct: 1 },
+        { stem: "_____ berhubungan dengan BASAH, sebagaimana MAKAN berhubungan dengan _____", options: ["Banjir – sehat", "Air – lapar", "Hujan – kenyang", "Dingin – minum", "Kering – makanan"], correct: 2 },
+        { stem: "_____ berhubungan dengan KEPERCAYAAN, sebagaimana KESALAHAN berhubungan dengan _____", options: ["Kekuatan – kecerobohan", "Penghianatan – kesempurnaan", "Kebaikan – kelemahan", "Ketakutan – ketelitian", "Keyakinan – ketidakmampuan"], correct: 0 },
+        { stem: "_____ berhubungan dengan KOKI, sebagaimana BUKU berhubungan dengan _____", options: ["Restoran – penerbit", "Makanan – perpustakaan", "Pisau – pelajar", "Dapur – penulis", "Rasa – penyunting"], correct: 3 },
+        { stem: "_____ berhubungan dengan PENJAHIT, sebagaimana TANG berhubungan dengan _____", options: ["Kain – kerusakan", "Jarum – montir", "Gunting – obeng", "Mesin jahit – mobil", "Pakaian – perbaikan"], correct: 1 },
+        { stem: "_____ berhubungan dengan DOMPET, sebagaimana BENANG berhubungan dengan _____", options: ["Wadah – jarum", "Kulit – kain", "Uang – pakaian", "Foto – sutra", "Uang – kapas"], correct: 2 },
+        { stem: "_____ berhubungan dengan PENJAHAT sebagaimana KEBUN berhubungan dengan _____", options: ["Pengadilan – makanan", "Pencopet – buah", "Penjara – pupuk", "Hukuman – bumbu dapur", "Penjara – tanaman"], correct: 4 },
+        { stem: "Peluit berhubungan dengan …, sebagaimana … berhubungan dengan prajurit.", options: ["wasit — senjata", "polisi — markas", "penalti — desersi", "permainan — perang", "kereta — pasukan"], correct: 0 },
+        { stem: "Merdeka berhubungan dengan …, sebagaimana … berhubungan dengan penjara.", options: ["pahlawan — narapidana", "proklamasi — sidang", "penjajahan — kebebasan", "bebas — jeruji besi", "berontak — hukuman"], correct: 3 },
+        { stem: "Gemetar berhubungan dengan sebagaimana … berhubungan dengan lucu.", options: ["lapar — geli", "sakit — lelucon", "gugup — parodi", "takut — tertawa", "bahaya — pelawak"], correct: 3 },
+        { stem: "Senja berhubungan dengan …, sebagaimana … berhubungan dengan berlari.", options: ["malam — berjalan", "petang — kejar", "waktu — cepat", "siang — kaki", "bulan — berdiri"], correct: 0 },
+        { stem: "Matematika berhubungan dengan …, sebagaimana … berhubungan dengan mobil.", options: ["matriks — transportasi", "rumus — jalan", "pelajaran — sedan", "angka — kendaraan", "hitungan — mesin"], correct: 3 },
+        { stem: "Laptop berhubungan dengan …, sebagaimana … berhubungan dengan busana.", options: ["komputer — kaos", "printer — sandal", "telepon genggam — tali", "layar — kaos", "internet — semir"], correct: 0 },
+        { stem: "Toko berhubungan dengan …, sebagaimana … berhubungan dengan ikan.", options: ["kasir — akuarium", "pembeli — cacing", "super market — paus", "makanan — pancing", "pakaian — bakar"], correct: 0 }
+    ];
+
+    // Perbaiki sedikit soal terakhir: alternatif (A) pada file asli "kasw — akuarium" -> asumsinya "kasir – akuarium" typo friendly. kami set index 0.
+    // Untuk akurasi, kita cocokkan dengan petunjuk umum.
+
+    // --------------------------------------------------------------
+    // 2. Inisialisasi SQLite in-memory, buat tabel, masukkan data
+    // --------------------------------------------------------------
+    let db = null;
+    let currentQuestionIndex = 0;      // 0-based
+    let userAnswers = new Array(rawQuestions.length).fill(null); // simpan index pilihan user
+    let quizLocked = false;             // setelah menjawab, lock untuk soal itu sampai next
+    let totalQuestions = rawQuestions.length;
+
+    // referensi DOM
+    const dynamicDiv = document.getElementById('dynamicContent');
+    const currentIdxSpan = document.getElementById('currentIdxDisplay');
+    const totalCountSpan = document.getElementById('totalCountSpan');
+    const scoreSpan = document.getElementById('scoreDisplay');
+
+    function updateStatsUI() {
+        currentIdxSpan.innerText = currentQuestionIndex + 1;
+        totalCountSpan.innerText = totalQuestions;
+        let computedScore = 0;
+        for (let i = 0; i < userAnswers.length; i++) {
+            if (userAnswers[i] !== null && userAnswers[i] === rawQuestions[i].correct) {
+                computedScore++;
+            }
+        }
+        scoreSpan.innerText = computedScore;
+    }
+
+    // render satu soal berdasarkan current index & status lock dari jawaban
+    function renderCurrentQuestion() {
+        if (!db) return;
+        const q = rawQuestions[currentQuestionIndex];
+        const currentAnswer = userAnswers[currentQuestionIndex];
+        const isLocked = (currentAnswer !== null); // sudah menjawab sebelumnya
+
+        // buat opsi HTML
+        let optionsHtml = '';
+        const optionLetters = ['A', 'B', 'C', 'D', 'E'];
+        for (let i = 0; i < q.options.length; i++) {
+            let additionalClass = '';
+            let feedbackBadge = '';
+            let isSelected = (currentAnswer === i);
+            
+            if (isLocked) {
+                if (i === q.correct) {
+                    additionalClass = 'correct-feedback';
+                    // bisa tambah icon
+                } else if (i === currentAnswer && i !== q.correct) {
+                    additionalClass = 'wrong-feedback';
+                }
+                if (i === currentAnswer) {
+                    additionalClass += ' selected';
+                }
+            } else {
+                if (isSelected) additionalClass = 'selected'; // biasanya tidak terjadi karena null
+            }
+            
+            optionsHtml += `
+                <div class="option-btn ${additionalClass}" data-opt-index="${i}">
+                    <span class="option-prefix">${optionLetters[i]}</span>
+                    <span>${escapeHtml(q.options[i])}</span>
+                </div>
+            `;
+        }
+
+        // feedback message jika sudah terjawab
+        let feedbackMsg = '';
+        if (isLocked) {
+            const isCorrect = (currentAnswer === q.correct);
+            const correctText = q.options[q.correct];
+            const chosenText = q.options[currentAnswer];
+            if (isCorrect) {
+                feedbackMsg = `✅ Benar! Jawaban tepat: ${escapeHtml(correctText)}.`;
+            } else {
+                feedbackMsg = `❌ Kurang tepat. Jawaban yang benar: ${escapeHtml(correctText)}. Pilihan Anda: ${escapeHtml(chosenText)}.`;
+            }
+        } else {
+            feedbackMsg = `💡 Pilih salah satu opsi yang paling tepat melengkapi analogi.`;
+        }
+
+        const html = `
+            <div class="question-text">
+                ${formatStemWithBlanks(q.stem)}
+            </div>
+            <div class="options-grid" id="optionsGrid">
+                ${optionsHtml}
+            </div>
+            <div class="feedback-message" id="feedbackMsg">
+                ${feedbackMsg}
+            </div>
+            <div class="nav-buttons">
+                <button id="prevBtn" class="prev-btn" ${currentQuestionIndex === 0 ? 'disabled' : ''}>◀ Sebelumnya</button>
+                <button id="resetBtn" class="reset-btn">⟳ Reset Jawaban</button>
+                <button id="nextBtn" class="next-btn" ${currentQuestionIndex === totalQuestions-1 && isLocked ? '' : ''}>Berikutnya ▶</button>
+            </div>
+            <div class="result-area" id="resultQuick">
+                ${userAnswers.filter(a => a !== null).length}/${totalQuestions} dikerjakan • 
+                ${userAnswers.reduce((acc, ans, idx) => acc + (ans !== null && ans === rawQuestions[idx].correct ? 1 : 0), 0)} benar
+            </div>
+        `;
+        
+        dynamicDiv.innerHTML = html;
+        
+        // Attach event listeners ke option buttons hanya jika belum terkunci
+        if (!isLocked) {
+            const optButtons = document.querySelectorAll('.option-btn');
+            optButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (quizLocked) return;
+                    const selectedIdx = parseInt(btn.dataset.optIndex);
+                    // jangan double answer
+                    if (userAnswers[currentQuestionIndex] !== null) return;
+                    // simpan jawaban
+                    userAnswers[currentQuestionIndex] = selectedIdx;
+                    updateStatsUI();
+                    renderCurrentQuestion();  // re-render dengan lock feedback
+                });
+            });
+        }
+        
+        // tambahkan event untuk tombol navigasi setelah render
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        if (prevBtn) prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+                updateStatsUI();
+            }
+        });
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                // jika soal saat ini belum dijawab, beri peringatan lembut namun tidak paksa pindah? tapi kita biarkan pindah tetap bisa, tapi user bisa menjawab nanti.
+                // lebih baik tidak memaksa, tapi izinkan navigasi saja. Tapi untuk kenyamanan, jika belum terjawab kita beri alert? tapi tetap diizinkan
+                if (userAnswers[currentQuestionIndex] === null) {
+                    // optional: flash pesan tapi tetap pindah jika ingin, namun user bisa menjawab nanti. Tapi biarkan.
+                    // kita tetap pindah tanpa block (agar fleksibel)
+                }
+                if (currentQuestionIndex < totalQuestions - 1) {
+                    currentQuestionIndex++;
+                    renderCurrentQuestion();
+                    updateStatsUI();
+                } else {
+                    // jika di akhir, tampilkan pesan ringkasan
+                    const finalScore = userAnswers.reduce((acc, ans, idx) => acc + ((ans !== null && ans === rawQuestions[idx].correct) ? 1 : 0), 0);
+                    alert(`🏁 Selesai! Anda menjawab ${finalScore} dari ${totalQuestions} soal dengan benar. Tekan reset jika ingin mengulang.`);
+                }
+            });
+        }
+        
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Reset semua jawaban? Progres akan hilang.')) {
+                    userAnswers.fill(null);
+                    updateStatsUI();
+                    renderCurrentQuestion();
+                }
+            });
+        }
+        
+        // update tombol next/prev disable style secara dinamis (sudah handle attribute)
+        if (currentQuestionIndex === 0) {
+            if (prevBtn) prevBtn.disabled = true;
+        } else {
+            if (prevBtn) prevBtn.disabled = false;
+        }
+        // tidak ada disable next berdasarkan jawaban, tapi tetap user bisa bebas navigasi.
+    }
+    
+    // helper untuk menampilkan stem dengan placeholder ____
+    function formatStemWithBlanks(stem) {
+        // Menampilkan teks analogi dengan highlight kata kunci
+        return stem.replace(/_____/g, '<span class="analogy-highlight">______</span>');
+    }
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // inisialisasi database sqlite (meskipun untuk keperluan kuis kita tak perlu query dinamis,
+    // namun karena spec "gunakan sqlite", kita akan membuat tabel soal dan mengambil data melalui sql untuk demonstrasi.
+    // TETAPI supaya tetap relevan, kita akan buat tabel questions, isi dari raw data via sql insert,
+    // dan saat render kita ambil dari db (sebagai pembuktian penggunaan sqlite). Tapi supaya simple, kita gunakan db sebagai sumber kebenaran.
+    // Skenario: buat tabel `analogies`, insert seluruh soal, kemudian pada render ambil dari query select by id.
+    // Jadi kita tidak bergantung pada array rawQuestions langsung ketika render, tapi dari sql.
+    // Tapi untuk menjawab, kita tetap membandingkan dengan correct_index dari db. Ok clean.
+    // pada load, kita siapkan db dan kemudian panggil loadFromDBAndRender.
+    
+    let sqlReady = false;
+    function initDatabaseAndRender() {
+        const config = {
+            locateFile: filename => `https://sql.js.org/dist/${filename}`
+        };
+        window.initSqlJs(config).then(function(SQL) {
+            db = new SQL.Database();
+            // create table
+            db.run(`
+                CREATE TABLE IF NOT EXISTS questions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    stem TEXT NOT NULL,
+                    opt_a TEXT, opt_b TEXT, opt_c TEXT, opt_d TEXT, opt_e TEXT,
+                    correct_idx INTEGER
+                );
+            `);
+            // insert data
+            const insertStmt = db.prepare(`
+                INSERT INTO questions (stem, opt_a, opt_b, opt_c, opt_d, opt_e, correct_idx)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `);
+            for (let q of rawQuestions) {
+                const opts = q.options;
+                insertStmt.run([q.stem, opts[0], opts[1], opts[2], opts[3], opts[4], q.correct]);
+            }
+            insertStmt.free();
+            
+            // optional: verify count
+            const countRes = db.exec("SELECT COUNT(*) FROM questions");
+            console.log("soal dalam db:", countRes[0].values[0][0]);
+            sqlReady = true;
+            // Memuat ulang data dari db ke array internal untuk konsistensi (opsional)
+            // kita rebuild rawDataFromDB? Tapi kita gunakan array asli tetap untuk efisiensi, tetapi 
+            // perlihatkan bahwa kita bisa menggunakannya lewat sql. Saat render, kita juga bisa mengambil dari db untuk menampilkan soal.
+            // Tapi untuk memenuhi "use sqlite" secara eksplisit, saya akan mengambil data current question via query sql setiap render.
+            // maka fungsi render akan menggunakan db untuk ambil soal berdasarkan currentQuestionIndex + 1
+            loadCurrentFromDBAndRender();
+        }).catch(err => {
+            console.error(err);
+            dynamicDiv.innerHTML = `<div style="color:red;">Gagal memuat database SQLite: ${err.message}</div>`;
+        });
+    }
+    
+    async function loadCurrentFromDBAndRender() {
+        if (!db) return;
+        // ambil soal dengan id = currentQuestionIndex+1
+        const stmt = db.prepare("SELECT id, stem, opt_a, opt_b, opt_c, opt_d, opt_e, correct_idx FROM questions WHERE id = ?");
+        stmt.bind([currentQuestionIndex + 1]);
+        if (stmt.step()) {
+            const row = stmt.getAsObject();
+            const optionsArr = [row.opt_a, row.opt_b, row.opt_c, row.opt_d, row.opt_e];
+            const correctIdx = row.correct_idx;
+            // update di rawQuestions reference agar sinkron dengan jawaban user? Kita pastikan juga sync.
+            // karena userAnswers menggunakan rawQuestions sebagai referensi, pastikan rawQuestions sinkron. (sudah pas)
+            // jika ada perbedaan kecil, abaikan.
+            // kita tetap menggunakan data dari db untuk menampilkan option, tetapi karena kita sudah ada rawQuestions, kita perbarui local saat init
+        }
+        stmt.free();
+        // panggil render utama dengan array mentah sudah sesuai.
+        renderCurrentQuestion();
+    }
+    
+    // override renderCurrentQuestion untuk memanfaatkan sql hanya untuk demonstrasi, 
+    // tetapi kita biarkan original berfungsi dengan raw array. Tambahan: pada awal kita perbaharui bahwa db sudah ready
+    // mari kita patch agar menggunakan query ambil soal dan sinkronkan dengan interface.
+    function renderFromSQLite() {
+        if (!db) return;
+        const stmt = db.prepare("SELECT stem, opt_a, opt_b, opt_c, opt_d, opt_e, correct_idx FROM questions WHERE id = ? LIMIT 1");
+        stmt.bind([currentQuestionIndex + 1]);
+        if (stmt.step()) {
+            const row = stmt.getAsObject();
+            const currentQ = {
+                stem: row.stem,
+                options: [row.opt_a, row.opt_b, row.opt_c, row.opt_d, row.opt_e],
+                correct: row.correct_idx
+            };
+            // render dengan data dari database secara langsung
+            renderDynamicWithData(currentQ);
+        } else {
+            dynamicDiv.innerHTML = "<div>Error memuat soal</div>";
+        }
+        stmt.free();
+    }
+    
+    function renderDynamicWithData(q) {
+        const currentAnswer = userAnswers[currentQuestionIndex];
+        const isLocked = (currentAnswer !== null);
+        let optionsHtml = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+        for (let i=0; i<q.options.length; i++) {
+            let addClass = '';
+            if (isLocked) {
+                if (i === q.correct) addClass = 'correct-feedback';
+                if (i === currentAnswer && i !== q.correct) addClass = 'wrong-feedback';
+                if (i === currentAnswer) addClass += ' selected';
+            }
+            optionsHtml += `<div class="option-btn ${addClass}" data-opt-index="${i}"><span class="option-prefix">${letters[i]}</span><span>${escapeHtml(q.options[i])}</span></div>`;
+        }
+        let feedbackMsg = '';
+        if (isLocked) {
+            const isCorrect = (currentAnswer === q.correct);
+            feedbackMsg = isCorrect ? `✅ Benar! Jawaban tepat: ${escapeHtml(q.options[q.correct])}.` : `❌ Salah. Jawaban benar: ${escapeHtml(q.options[q.correct])}.`;
+        } else {
+            feedbackMsg = `💡 Pilih opsi untuk melengkapi analogi.`;
+        }
+        const html = `
+            <div class="question-text">${formatStemWithBlanks(q.stem)}</div>
+            <div class="options-grid" id="optionsGrid">${optionsHtml}</div>
+            <div class="feedback-message">${feedbackMsg}</div>
+            <div class="nav-buttons">
+                <button id="prevBtn" ${currentQuestionIndex===0 ? 'disabled' : ''}>◀ Sebelumnya</button>
+                <button id="resetBtn" class="reset-btn">⟳ Reset</button>
+                <button id="nextBtn">Berikutnya ▶</button>
+            </div>
+            <div class="result-area">📊 Progres: ${userAnswers.filter(a=>a!==null).length}/${totalQuestions} terjawab | Score: ${userAnswers.reduce((s,ans,i)=>s+((ans!==null && ans===rawQuestions[i].correct)?1:0),0)}</div>
+        `;
+        dynamicDiv.innerHTML = html;
+        if (!isLocked) {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (userAnswers[currentQuestionIndex] !== null) return;
+                    const idx = parseInt(btn.dataset.optIndex);
+                    userAnswers[currentQuestionIndex] = idx;
+                    updateStatsUI();
+                    renderFromSQLite();
+                });
+            });
+        }
+        document.getElementById('prevBtn')?.addEventListener('click', () => { if(currentQuestionIndex>0){ currentQuestionIndex--; updateStatsUI(); renderFromSQLite(); } });
+        document.getElementById('nextBtn')?.addEventListener('click', () => { if(currentQuestionIndex<totalQuestions-1){ currentQuestionIndex++; updateStatsUI(); renderFromSQLite(); } else { alert('Selesai!') } });
+        document.getElementById('resetBtn')?.addEventListener('click', () => { if(confirm('Reset semua?')){ userAnswers.fill(null); updateStatsUI(); renderFromSQLite(); } });
+        updateStatsUI();
+    }
+    
+    // overwrite start: gunakan sqlite native
+    initDatabaseAndRender = function() {
+        window.initSqlJs({ locateFile: filename => `https://sql.js.org/dist/${filename}` }).then(SQL => {
+            db = new SQL.Database();
+            db.run(`CREATE TABLE questions (id INTEGER PRIMARY KEY, stem TEXT, opt_a TEXT, opt_b TEXT, opt_c TEXT, opt_d TEXT, opt_e TEXT, correct_idx INTEGER)`);
+            const insert = db.prepare(`INSERT INTO questions VALUES (?,?,?,?,?,?,?,?)`);
+            for (let i=0; i<rawQuestions.length; i++) {
+                const q = rawQuestions[i];
+                insert.run([i+1, q.stem, q.options[0], q.options[1], q.options[2], q.options[3], q.options[4], q.correct]);
+            }
+            insert.free();
+            totalQuestions = rawQuestions.length;
+            updateStatsUI();
+            renderFromSQLite();
+        }).catch(e => { dynamicDiv.innerHTML = `<div>Error: ${e.message}</div>`; });
+    };
+    
+    window.initSqlJs = window.initSqlJs || function() { return import('https://sql.js.org/dist/sql-wasm.js').then(m => m.default); };
+    // start
+    initDatabaseAndRender();
+</script>
+</body>
+</html>
